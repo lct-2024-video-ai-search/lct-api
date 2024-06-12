@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=lct
+    healthcheck:
+      test: pg_isready --dbname=$$POSTGRES_DB --username=$$POSTGRES_USER
+      interval: 3s
+      timeout: 3s
+      start_period: 5s
+      retries: 2
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      - DB_SOURCE=postgresql://postgres:password@postgres:5432/lct?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
