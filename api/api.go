@@ -10,6 +10,8 @@ import (
 const DefaultPageSize = 20
 const DefaultPageNumber = 1
 
+const InsertVideoRequest = "INSERT INTO VideoIndex (link, audio_description, video_description, idx, user_description) VALUES (?, ?, ?, ?) RETURNING *;"
+
 type indexVideoRequest struct {
 	Link        string `json:"link" binding:"required"`
 	Description string `json:"description"`
@@ -32,22 +34,12 @@ func (s *Server) indexVideo(ctx *gin.Context) {
 		VideoURL:         req.Link,
 		VideoDescription: req.Description,
 	})
-
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	arg := db.CreateVideoParams{
-		Link:        req.Link,
-		Description: req.Description,
-	}
-
-	_, err := s.store.CreateVideo(context.Background(), arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	}
-
+	s.db.ExecContext(context.Background(), InsertVideoRequest)
 	ctx.Status(http.StatusCreated)
 }
 

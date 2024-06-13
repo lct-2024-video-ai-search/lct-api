@@ -1,20 +1,20 @@
 package api
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
-	db "lct-backend/db/sqlc"
 	"net/http"
 )
 
 type Server struct {
-	store  db.Store
+	db     *sql.DB
 	router *gin.Engine
 	client http.Client
 }
 
-func NewServer(store db.Store, client http.Client) (*Server, error) {
+func NewServer(db *sql.DB, client http.Client) (*Server, error) {
 	server := &Server{
-		store:  store,
+		db:     db,
 		client: client,
 	}
 

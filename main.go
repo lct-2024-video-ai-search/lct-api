@@ -12,7 +12,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"lct-backend/api"
-	db "lct-backend/db/sqlc"
 	"net"
 	"net/http"
 	"time"
@@ -24,11 +23,6 @@ func main() {
 		fmt.Printf("%+v", err)
 		log.Fatal().Err(err).Msg("cannot load config:")
 	}
-
-	conn, err := sql.Open(config.DBDriver, config.DBSource)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot connect to db:")
-	}
 	err = runMigration(config.MigrationURL, config.DBSource)
 	if err != nil {
 		log.Fatal().Err(err)
@@ -36,7 +30,6 @@ func main() {
 
 	log.Info().Msgf("Migrations successful, starting...")
 
-	store := db.NewStore(conn)
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
 			Timeout:   30 * time.Second,
@@ -48,7 +41,9 @@ func main() {
 		ExpectContinueTimeout: 1 * time.Second,
 	}
 	client := http.Client{Timeout: 10 * time.Second, Transport: transport}
-	server, err := api.NewServer(store, client)
+
+	ch := getClickhouseClient(config.ClickHouseHost)
+	server, err := api.NewServer(ch, client)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("error init server:")
@@ -82,6 +77,9 @@ func getClickhouseClient(addr string) *sql.DB {
 	conn.SetMaxIdleConns(500)
 	conn.SetMaxOpenConns(1000)
 	conn.SetConnMaxLifetime(time.Hour)
+	if err := conn.Ping(); err != nil {
+		log.Fatal().Err(err).Msg("cannot connect to clickhouse")
+	}
 	return conn
 }
 
