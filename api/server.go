@@ -7,19 +7,24 @@ import (
 )
 
 type Server struct {
-	db     *sql.DB
-	router *gin.Engine
-	client http.Client
+	db                 *sql.DB
+	router             *gin.Engine
+	client             http.Client
+	videoProcessingURL string
+	videoIndexingURL   string
 }
 
-func NewServer(db *sql.DB, client http.Client) (*Server, error) {
+func NewServer(db *sql.DB, videoProcessingURL string, videoIndexingURL string, client http.Client) (*Server, error) {
 	server := &Server{
-		db:     db,
-		client: client,
+		db:                 db,
+		client:             client,
+		videoIndexingURL:   videoIndexingURL,
+		videoProcessingURL: videoProcessingURL,
 	}
 
 	// register routes method
 	router := gin.Default()
+
 	root := router.Group("/")
 	server.registerRoutes(root)
 
@@ -34,6 +39,7 @@ func (s *Server) Run(addr string) error {
 func (s *Server) registerRoutes(router *gin.RouterGroup) {
 	router.POST("/index", s.indexVideo)
 	router.GET("/search", s.searchVideo)
+	router.GET("/videos", s.videosPaged)
 }
 
 func errorResponse(err error) gin.H {

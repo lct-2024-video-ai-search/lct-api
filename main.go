@@ -1,7 +1,6 @@
-package lct_backend
+package main
 
 import (
-	"crypto/tls"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -12,23 +11,24 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"lct-backend/api"
+	"lct-backend/config"
 	"net"
 	"net/http"
 	"time"
 )
 
 func main() {
-	config, err := LoadConfig(".")
+	appConfig, err := config.LoadConfig(".")
 	if err != nil {
 		fmt.Printf("%+v", err)
-		log.Fatal().Err(err).Msg("cannot load config:")
+		log.Fatal().Err(err).Msg("cannot load appConfig:")
 	}
-	err = runMigration(config.MigrationURL, config.DBSource)
-	if err != nil {
-		log.Fatal().Err(err)
-	}
-
-	log.Info().Msgf("Migrations successful, starting...")
+	//err = runMigration(appConfig.MigrationURL, appConfig.DBSource)
+	//if err != nil {
+	//	log.Fatal().Err(err)
+	//}
+	//
+	//log.Info().Msgf("Migrations successful, starting...")
 
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
@@ -42,14 +42,14 @@ func main() {
 	}
 	client := http.Client{Timeout: 10 * time.Second, Transport: transport}
 
-	ch := getClickhouseClient(config.ClickHouseHost)
-	server, err := api.NewServer(ch, client)
+	ch := getClickhouseClient(appConfig.ClickHouseHost)
+	server, err := api.NewServer(ch, appConfig.VideoProcessingServiceAddress, appConfig.VideoIndexingServiceAddress, client)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("error init server:")
 	}
 
-	server.Run(config.HTTPServerAddress)
+	server.Run(appConfig.HTTPServerAddress)
 }
 
 func getClickhouseClient(addr string) *sql.DB {
@@ -59,9 +59,6 @@ func getClickhouseClient(addr string) *sql.DB {
 			Database: "default",
 			Username: "default",
 			Password: "",
-		},
-		TLS: &tls.Config{
-			InsecureSkipVerify: true,
 		},
 		Settings: clickhouse.Settings{
 			"max_execution_time": 60,
