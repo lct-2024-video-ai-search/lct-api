@@ -12,23 +12,27 @@ import (
 	"github.com/rs/zerolog/log"
 	"lct-backend/api"
 	"lct-backend/config"
+	"lct-backend/db"
 	"net"
 	"net/http"
 	"time"
 )
 
+// @title           Puppy Video Index / Search API
+// @version         1.0
+// @description     API to video search service
+
+// @host      api-zvezdolet.ddns.net
+// @BasePath  /
+
+// @externalDocs.description  OpenAPI
+// @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	appConfig, err := config.LoadConfig(".")
 	if err != nil {
 		fmt.Printf("%+v", err)
 		log.Fatal().Err(err).Msg("cannot load appConfig:")
 	}
-	//err = runMigration(appConfig.MigrationURL, appConfig.DBSource)
-	//if err != nil {
-	//	log.Fatal().Err(err)
-	//}
-	//
-	//log.Info().Msgf("Migrations successful, starting...")
 
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
@@ -37,13 +41,14 @@ func main() {
 		}).DialContext,
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		TLSHandshakeTimeout:   60 * time.Second,
+		ExpectContinueTimeout: 10 * time.Second,
 	}
-	client := http.Client{Timeout: 10 * time.Second, Transport: transport}
+	client := http.Client{Timeout: 600 * time.Second, Transport: transport}
 
 	ch := getClickhouseClient(appConfig.ClickHouseHost)
-	server, err := api.NewServer(ch, appConfig.VideoProcessingServiceAddress, appConfig.VideoIndexingServiceAddress, client)
+	store := db.NewSQLVideoStore(ch)
+	server, err := api.NewServer(&store, appConfig.VideoProcessingServiceAddress, appConfig.VideoIndexingServiceAddress, client)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("error init server:")

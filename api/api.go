@@ -1,21 +1,16 @@
 package api
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"lct-backend/db"
+	"lct-backend/transform"
 	"net/http"
 	"strconv"
 )
 
+const DefaultSearchQuery = "fire"
 const DefaultPageSize = 4
 const DefaultPageNumber = 1
-
-const InsertVideoRequest = "INSERT INTO VideoIndex (link, audio_description, video_description, idx, user_description) VALUES (?, ?, ?, ?, ?)"
-const GetMaxIdxRequest = "SELECT max(idx) FROM VideoIndex;"
-const GetAllInIndexesRequest = "SELECT DISTINCT link, user_description, idx FROM VideoIndex WHERE idx IN (?)"
-const GetAllPagedRequest = "SELECT DISTINCT link, user_description FROM VideoIndex LIMIT ? OFFSET ?"
 
 type indexVideoRequest struct {
 	Link        string `json:"link" binding:"required"`
@@ -26,6 +21,16 @@ type indexVideoResponse struct {
 	indexVideoRequest
 }
 
+// indexVideo godoc
+// @Summary      Index video
+// @Description  Index video in the search service
+// @Accept       json
+// @Produce      json
+// @Param        video body api.indexVideoRequest true "video link and desc"
+// @Success      200  {object}  api.indexVideoResponse
+// @Failure      400  {object}  api.ErrorResponse
+// @Failure      500  {object}  api.ErrorResponse
+// @Router       /index [post]
 func (s *Server) indexVideo(ctx *gin.Context) {
 	var req indexVideoRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -42,23 +47,23 @@ func (s *Server) indexVideo(ctx *gin.Context) {
 		return
 	}
 
-	var maxIdx int64
-	_ = s.db.QueryRow(GetMaxIdxRequest).Scan(&maxIdx) // zero on error
+	idx, err := s.store.InsertVideo(ctx, db.InsertVideoParameters{
+		Link:             desc.VideoURL,
+		AudioDescription: desc.SpeechDescription,
+		VideoDescription: desc.VideoMovementDesc,
+		UserDescription:  desc.VideoDescription,
+	})
 
-	newIdx := maxIdx + 1
-	_, err = s.db.ExecContext(context.Background(), InsertVideoRequest,
-		desc.VideoURL, desc.SpeechDescription, desc.VideoMovementDesc, newIdx, desc.VideoDescription)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	// TODO: send to video processing
 
 	_, err = s.postIndex(postIndexRequest{
 		VideoDescription:  desc.VideoDescription,
 		VideoMovementDesc: desc.VideoMovementDesc,
 		SpeechDescription: desc.SpeechDescription,
-		Index:             maxIdx + 1,
+		Index:             idx,
 	})
 
 	if err != nil {
@@ -86,31 +91,35 @@ func (s *Server) videosPaged(ctx *gin.Context) {
 		size = maybeSize
 	}
 
-	rows, err := s.db.Query(GetAllPagedRequest, size, (page-1)*size)
+	videos, err := s.store.GetAllVideoLinksAndUserDescriptionsPaged(ctx, page, size)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	var entries videoEntryResponse
-	var entry videoEntry
-	for rows.Next() {
-		err = rows.Scan(&entry.Link, &entry.Description)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
+	response := transform.Map(videos, func(videos db.Video) videoEntry {
+		return videoEntry{
+			Link:        videos.Link,
+			Description: videos.UserDescription,
 		}
-		entries = append(entries, entry)
-	}
+	})
 
-	ctx.JSON(http.StatusOK, entries)
+	ctx.JSON(http.StatusOK, response)
 }
 
+// searchVideo godoc
+// @Summary      Search video
+// @Description  search video by text given
+// @Produce      json
+// @Param        text query string true "video description"
+// @Success      200  {object}  api.videoEntryResponse
+// @Failure      400  {object}  api.ErrorResponse
+// @Failure      500  {object}  api.ErrorResponse
+// @Router       /search [get]
 func (s *Server) searchVideo(ctx *gin.Context) {
 	searchQuery := ctx.Query("text")
 	if searchQuery == "" {
-		ctx.JSON(http.StatusBadRequest, errorResponse(errors.New("empty search query")))
-		return
+		searchQuery = DefaultSearchQuery // stub to filter inappropriate mature content
 	}
 	resp, err := s.searchIndex(searchQuery)
 	if err != nil {
@@ -118,37 +127,18 @@ func (s *Server) searchVideo(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println(resp.Indexes[:20])
-	videos, err := s.fetchVideosSortedByIndex(resp.Indexes)
+	videos, err := s.store.GetAllVideoLinksAndUserDescriptionsWithIndexes(ctx, resp.Indexes)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, videos)
-}
-
-func (s *Server) fetchVideosSortedByIndex(indexes []int) ([]videoEntry, error) {
-	priorities := make(map[int]int)
-	for i, v := range indexes {
-		priorities[v] = i
-	}
-
-	rows, err := s.db.Query(GetAllInIndexesRequest, indexes)
-	if err != nil {
-		return nil, err
-	}
-
-	entries := make(videoEntryResponse, len(priorities))
-	var entry videoEntry
-	for rows.Next() {
-		var idx int
-		err = rows.Scan(&entry.Link, &entry.Description, &idx)
-		if err != nil {
-			return nil, err
+	response := transform.Map(videos, func(videos db.Video) videoEntry {
+		return videoEntry{
+			Link:        videos.Link,
+			Description: videos.UserDescription,
 		}
-		entries[priorities[idx]] = entry
-	}
+	})
 
-	return entries, nil
+	ctx.JSON(http.StatusOK, response)
 }

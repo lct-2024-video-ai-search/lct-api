@@ -1,22 +1,22 @@
 package api
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
+	"lct-backend/db"
 	"net/http"
 )
 
 type Server struct {
-	db                 *sql.DB
+	store              db.VideoStore
 	router             *gin.Engine
 	client             http.Client
 	videoProcessingURL string
 	videoIndexingURL   string
 }
 
-func NewServer(db *sql.DB, videoProcessingURL string, videoIndexingURL string, client http.Client) (*Server, error) {
+func NewServer(store db.VideoStore, videoProcessingURL string, videoIndexingURL string, client http.Client) (*Server, error) {
 	server := &Server{
-		db:                 db,
+		store:              store,
 		client:             client,
 		videoIndexingURL:   videoIndexingURL,
 		videoProcessingURL: videoProcessingURL,
@@ -24,7 +24,7 @@ func NewServer(db *sql.DB, videoProcessingURL string, videoIndexingURL string, c
 
 	// register routes method
 	router := gin.Default()
-
+	router.Use(allowAll())
 	root := router.Group("/")
 	server.registerRoutes(root)
 
@@ -40,8 +40,13 @@ func (s *Server) registerRoutes(router *gin.RouterGroup) {
 	router.POST("/index", s.indexVideo)
 	router.GET("/search", s.searchVideo)
 	router.GET("/videos", s.videosPaged)
+	router.Static("/docs", "swagger")
 }
 
-func errorResponse(err error) gin.H {
-	return gin.H{"error": err.Error()}
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+func errorResponse(err error) ErrorResponse {
+	return ErrorResponse{err.Error()}
 }

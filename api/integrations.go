@@ -51,7 +51,7 @@ type postIndexRequest struct {
 	VideoDescription  string `json:"VideoDescription"`
 	VideoMovementDesc string `json:"VideoMovementDesc"`
 	SpeechDescription string `json:"SpeechDescription"`
-	Index             int64  `json:"Index"`
+	Index             uint64 `json:"Index"`
 }
 
 type postIndexResponse struct {

@@ -1,0 +1,98 @@
+basePath: /
+definitions:
+  api.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  api.indexVideoRequest:
+    properties:
+      description:
+        type: string
+      link:
+        type: string
+    required:
+      - link
+    type: object
+  api.indexVideoResponse:
+    properties:
+      description:
+        type: string
+      link:
+        type: string
+    required:
+      - link
+    type: object
+  api.videoEntry:
+    properties:
+      description:
+        type: string
+      link:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: api-zvezdolet.ddns.net
+info:
+  contact: { }
+  description: API to video search service
+  title: Puppy Video Index / Search API
+  version: "1.0"
+paths:
+  /index:
+    post:
+      consumes:
+        - application/json
+      description: Index video in the search service
+      parameters:
+        - description: video link and desc
+          in: body
+          name: video
+          required: true
+          schema:
+            $ref: '#/definitions/api.indexVideoRequest'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.indexVideoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Index video
+  /search:
+    get:
+      description: search video by text given
+      parameters:
+        - description: video description
+          in: query
+          name: text
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.videoEntry'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Search video
+swagger: "2.0"
