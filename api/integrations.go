@@ -64,7 +64,9 @@ func (s *Server) postIndex(postIndexReq postIndexRequest) (postIndexResponse, er
 		return postIndexResponse{}, err
 	}
 	defer httpResp.Body.Close()
-
+	if httpResp.StatusCode != 200 {
+		return postIndexResponse{}, fmt.Errorf("indexing service return bad status code: %d", httpResp.StatusCode)
+	}
 	var resp postIndexResponse
 	err = json.NewDecoder(httpResp.Body).Decode(&resp)
 	if err != nil {

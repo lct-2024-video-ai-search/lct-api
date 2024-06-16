@@ -45,7 +45,6 @@ func main() {
 		ExpectContinueTimeout: 10 * time.Second,
 	}
 	client := http.Client{Timeout: 600 * time.Second, Transport: transport}
-
 	ch := getClickhouseClient(appConfig.ClickHouseHost)
 	store := db.NewSQLVideoStore(ch)
 	server, err := api.NewServer(&store, appConfig.VideoProcessingServiceAddress, appConfig.VideoIndexingServiceAddress, client)

@@ -7,22 +7,14 @@ COPY . .
 RUN go build -o main main.go
 
 # Run stage
-#FROM alpine:3.18
-#
-## Copy config file
-#COPY app.env .
-#
-## Copy migrations
-#COPY db/migrations ./db/migrations
-#
-## Copy binary and start script
-#COPY start.sh .
-#COPY --from=builder /app/main .
-#RUN chmod +x start.sh main
-#
-#EXPOSE 8080
-#ENTRYPOINT ["./start.sh"]
+FROM alpine:3.18
 
-# Acts as default argument for ENTRYPOINT above
-CMD ["./main"]
+# Copy config file
+COPY app.env .
+
+# Copy binary and start script
+COPY --from=builder /app/main .
+EXPOSE 8080
+
+ENTRYPOINT ["./main"]
 
