@@ -28,10 +28,5 @@ func LoadConfig(path string) (config Config, err error) {
 
 	err = viper.Unmarshal(&config)
 
-	//if config.HTTPServerAddress == "" {
-	//	log.Printf("Server address is unset, assuming %s", DefaultAddress)
-	//	config.HTTPServerAddress = DefaultAddress
-	//}
-
 	return
 }

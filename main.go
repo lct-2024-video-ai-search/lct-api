@@ -2,10 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/ClickHouse/clickhouse-go/v2"
-	"github.com/golang-migrate/migrate"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
@@ -80,16 +78,4 @@ func getClickhouseClient(addr string) *sql.DB {
 		log.Fatal().Err(err).Msg("cannot connect to clickhouse")
 	}
 	return conn
-}
-
-func runMigration(migrationUrl string, dbSource string) error {
-	m, err := migrate.New(migrationUrl, dbSource)
-	if err != nil {
-		return err
-	}
-	err = m.Up()
-	if errors.Is(err, migrate.ErrNoChange) {
-		return nil
-	}
-	return err
 }
