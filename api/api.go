@@ -149,3 +149,11 @@ func (s *Server) searchVideo(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, response)
 }
+
+func (s *Server) mainPage(ctx *gin.Context) {
+	ctx.JSON(200, gin.H{
+		"Документация": "https://api-zvezdolet.ddns.net/docs",
+		"Индексация":   "https://api-zvezdolet.ddns.net/index",
+		"Поиск":        "https://api-zvezdolet.ddns.net/search",
+	})
+}

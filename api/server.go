@@ -40,6 +40,7 @@ func (s *Server) registerRoutes(router *gin.RouterGroup) {
 	router.POST("/index", s.indexVideo)
 	router.GET("/search", s.searchVideo)
 	router.GET("/videos", s.videosPaged)
+	router.GET("/", s.mainPage)
 	router.Static("/docs", "swagger")
 }
 
