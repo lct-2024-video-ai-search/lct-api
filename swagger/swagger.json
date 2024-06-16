@@ -1,150 +1,146 @@
 {
-  "swagger": "2.0",
-  "info": {
-    "description": "API to video search service",
-    "title": "Puppy Video Index / Search API",
-    "contact": {},
-    "version": "1.0"
-  },
-  "host": "api-zvezdolet.ddns.net",
-  "basePath": "/",
-  "paths": {
-    "/index": {
-      "post": {
-        "description": "Index video in the search service",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "summary": "Index video",
-        "parameters": [
-          {
-            "description": "video link and desc",
-            "name": "video",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/api.indexVideoRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/api.indexVideoResponse"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/api.ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "$ref": "#/definitions/api.ErrorResponse"
-            }
-          }
-        }
-      }
+    "swagger": "2.0",
+    "info": {
+        "description": "API к сервису индексации и поиска видео",
+        "title": "Zvezdolet Search API",
+        "contact": {},
+        "version": "1.0"
     },
-    "/search": {
-      "get": {
-        "description": "search video by text given",
-        "produces": [
-          "application/json"
-        ],
-        "summary": "Search video",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "video description",
-            "name": "text",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/api.videoEntry"
-              }
+    "host": "api-zvezdolet.ddns.net",
+    "basePath": "/",
+    "paths": {
+        "/index": {
+            "post": {
+                "description": "Индексировать видео в базе сервиса",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Индексировать видео",
+                "parameters": [
+                    {
+                        "description": "ссылка и описание видео",
+                        "name": "video",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.indexVideoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.indexVideoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
             }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/api.ErrorResponse"
+        },
+        "/search": {
+            "get": {
+                "description": "Поиск видео по заданному тексту",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Поиск видео",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "поисковый запрос",
+                        "name": "text",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api.videoEntry"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
             }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "$ref": "#/definitions/api.ErrorResponse"
-            }
-          }
         }
-      }
+    },
+    "definitions": {
+        "api.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.indexVideoRequest": {
+            "type": "object",
+            "required": [
+                "link"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.indexVideoResponse": {
+            "type": "object",
+            "required": [
+                "link"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.videoEntry": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                }
+            }
+        }
     }
-  },
-  "definitions": {
-    "api.ErrorResponse": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string"
-        }
-      }
-    },
-    "api.indexVideoRequest": {
-      "type": "object",
-      "required": [
-        "link"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "link": {
-          "type": "string"
-        }
-      }
-    },
-    "api.indexVideoResponse": {
-      "type": "object",
-      "required": [
-        "link"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "link": {
-          "type": "string"
-        }
-      }
-    },
-    "api.videoEntry": {
-      "type": "object",
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "link": {
-          "type": "string"
-        }
-      }
-    }
-  },
-  "externalDocs": {
-    "description": "OpenAPI",
-    "url": "https://swagger.io/resources/open-api/"
-  }
 }

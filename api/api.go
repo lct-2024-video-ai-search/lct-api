@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"lct-backend/db"
 	"lct-backend/transform"
@@ -22,11 +23,11 @@ type indexVideoResponse struct {
 }
 
 // indexVideo godoc
-// @Summary      Index video
-// @Description  Index video in the search service
+// @Summary      Индексировать видео
+// @Description  Индексировать видео в базе сервиса
 // @Accept       json
 // @Produce      json
-// @Param        video body api.indexVideoRequest true "video link and desc"
+// @Param        video body api.indexVideoRequest true "ссылка и описание видео"
 // @Success      200  {object}  api.indexVideoResponse
 // @Failure      400  {object}  api.ErrorResponse
 // @Failure      500  {object}  api.ErrorResponse
@@ -42,6 +43,12 @@ func (s *Server) indexVideo(ctx *gin.Context) {
 		VideoURL:         req.Link,
 		VideoDescription: req.Description,
 	})
+
+	if errors.Is(err, ErrBadRequest) {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -108,10 +115,10 @@ func (s *Server) videosPaged(ctx *gin.Context) {
 }
 
 // searchVideo godoc
-// @Summary      Search video
-// @Description  search video by text given
+// @Summary      Поиск видео
+// @Description  Поиск видео по заданному тексту
 // @Produce      json
-// @Param        text query string true "video description"
+// @Param        text query string true "поисковый запрос"
 // @Success      200  {object}  api.videoEntryResponse
 // @Failure      400  {object}  api.ErrorResponse
 // @Failure      500  {object}  api.ErrorResponse

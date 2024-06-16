@@ -17,17 +17,17 @@ const docTemplate = `{
     "paths": {
         "/index": {
             "post": {
-                "description": "Index video in the search service",
+                "description": "Индексировать видео в базе сервиса",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Index video",
+                "summary": "Индексировать видео",
                 "parameters": [
                     {
-                        "description": "video link and desc",
+                        "description": "ссылка и описание видео",
                         "name": "video",
                         "in": "body",
                         "required": true,
@@ -60,15 +60,15 @@ const docTemplate = `{
         },
         "/search": {
             "get": {
-                "description": "search video by text given",
+                "description": "Поиск видео по заданному тексту",
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Search video",
+                "summary": "Поиск видео",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "video description",
+                        "description": "поисковый запрос",
                         "name": "text",
                         "in": "query",
                         "required": true
@@ -148,10 +148,6 @@ const docTemplate = `{
                 }
             }
         }
-    },
-    "externalDocs": {
-        "description": "OpenAPI",
-        "url": "https://swagger.io/resources/open-api/"
     }
 }`
 
@@ -161,8 +157,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "api-zvezdolet.ddns.net",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Puppy Video Index / Search API",
-	Description:      "API to video search service",
+	Title:            "Zvezdolet Search API",
+	Description:      "API к сервису индексации и поиска видео",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

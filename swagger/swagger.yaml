@@ -30,23 +30,20 @@ definitions:
       link:
         type: string
     type: object
-externalDocs:
-  description: OpenAPI
-  url: https://swagger.io/resources/open-api/
 host: api-zvezdolet.ddns.net
 info:
   contact: { }
-  description: API to video search service
-  title: Puppy Video Index / Search API
+  description: API к сервису индексации и поиска видео
+  title: Zvezdolet Search API
   version: "1.0"
 paths:
   /index:
     post:
       consumes:
         - application/json
-      description: Index video in the search service
+      description: Индексировать видео в базе сервиса
       parameters:
-        - description: video link and desc
+        - description: ссылка и описание видео
           in: body
           name: video
           required: true
@@ -67,12 +64,12 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api.ErrorResponse'
-      summary: Index video
+      summary: Индексировать видео
   /search:
     get:
-      description: search video by text given
+      description: Поиск видео по заданному тексту
       parameters:
-        - description: video description
+        - description: поисковый запрос
           in: query
           name: text
           required: true
@@ -94,5 +91,5 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api.ErrorResponse'
-      summary: Search video
+      summary: Поиск видео
 swagger: "2.0"

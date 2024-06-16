@@ -3,10 +3,13 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 )
+
+var ErrBadRequest = errors.New("bad request")
 
 const GetDescriptionURI = "/api/get_descriptions"
 const PostDescriptionURI = "/create_video_index"
@@ -30,7 +33,12 @@ func (s *Server) getDescriptions(req getDescriptionsRequest) (getDescriptionsRes
 		return getDescriptionsResponse{}, err
 	}
 	defer httpResp.Body.Close()
-
+	if httpResp.StatusCode == 400 {
+		return getDescriptionsResponse{}, ErrBadRequest
+	}
+	if httpResp.StatusCode != 200 {
+		return getDescriptionsResponse{}, fmt.Errorf("processing service return bad status code: %d", httpResp.StatusCode)
+	}
 	var resp getDescriptionsResponse
 	err = json.NewDecoder(httpResp.Body).Decode(&resp)
 	if err != nil {
@@ -64,6 +72,9 @@ func (s *Server) postIndex(postIndexReq postIndexRequest) (postIndexResponse, er
 		return postIndexResponse{}, err
 	}
 	defer httpResp.Body.Close()
+	if httpResp.StatusCode == 400 {
+		return postIndexResponse{}, ErrBadRequest
+	}
 	if httpResp.StatusCode != 200 {
 		return postIndexResponse{}, fmt.Errorf("indexing service return bad status code: %d", httpResp.StatusCode)
 	}

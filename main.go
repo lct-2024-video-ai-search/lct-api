@@ -18,15 +18,13 @@ import (
 	"time"
 )
 
-// @title           Puppy Video Index / Search API
+// @title           Zvezdolet Search API
 // @version         1.0
-// @description     API to video search service
+// @description     API к сервису индексации и поиска видео
 
 // @host      api-zvezdolet.ddns.net
 // @BasePath  /
 
-// @externalDocs.description  OpenAPI
-// @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	appConfig, err := config.LoadConfig(".")
 	if err != nil {
@@ -71,7 +69,7 @@ func getClickhouseClient(addr string) *sql.DB {
 		Compression: &clickhouse.Compression{
 			Method: clickhouse.CompressionLZ4,
 		},
-		Debug:                true,
+		Debug:                false,
 		BlockBufferSize:      10,
 		MaxCompressionBuffer: 10240,
 	})
